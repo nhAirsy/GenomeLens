@@ -6,6 +6,9 @@ __pycache__/
 *.pyd
 *.pyo
 
+# Codex 本地专属配置与技能
+.codex/
+
 # 覆盖率报告
 .coverage
 htmlcov/

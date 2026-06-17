@@ -1,7 +1,0 @@
-interface:
-  display_name: "GenomeLens Developer"
-  short_description: "Project feature development workflow"
-  default_prompt: "Use $genomelens-developer to implement the next GenomeLens feature from origin/main on a feature branch."
-
-policy:
-  allow_implicit_invocation: false

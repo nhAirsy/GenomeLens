@@ -15,6 +15,8 @@ from jcvi_genomelens.runtime.command_runner import CommandAudit, run_python_step
 
 # endregion
 
+TARGET_BLOCK_HIGHLIGHT = "r"
+
 
 def _assert_ok(command: CommandAudit) -> None:
     if command.returncode != 0:
@@ -41,6 +43,26 @@ def _read_bed_order(bed_path: Path) -> tuple[list[str], dict[str, int]]:
     # BED 顺序就是局部窗口裁切时的“基因坐标轴”。
     index = {accn: idx for idx, accn in enumerate(order)}
     return order, index
+
+
+def _split_block_highlight(line: str) -> tuple[str | None, str]:
+    """拆分 JCVI blocks 行首的 highlight 前缀"""
+
+    if "*" not in line:
+        return None, line
+    highlight, body = line.split("*", 1)
+    return highlight or None, body
+
+
+def _mark_target_block_line(line: str, target_gene_ids: set[str]) -> str:
+    """给目标基因所在的 blocks 行加 JCVI 红色 highlight 前缀"""
+
+    _, body = _split_block_highlight(line)
+    parts = body.split("\t")
+    query_accn = parts[0].strip() if parts else ""
+    if query_accn in target_gene_ids:
+        return f"{TARGET_BLOCK_HIGHLIGHT}*{body}"
+    return line
 
 
 def _extract_local_blocks(
@@ -94,12 +116,14 @@ def _extract_local_blocks(
     def _has_subject(parts: list[str]) -> bool:
         return any(accn.strip() and accn.strip() != "." for accn in parts[1:])
 
+    target_gene_set = set(target_gene_ids)
     with blocks_path.open("r", encoding="utf-8") as handle:
         for raw_line in handle:
             line = raw_line.rstrip("\n\r")
             if not line or line.startswith("#"):
                 continue
-            parts = line.split("\t")
+            _, block_body = _split_block_highlight(line)
+            parts = block_body.split("\t")
             if len(parts) < 2:
                 continue
             query_accn = parts[0].strip()
@@ -108,7 +132,7 @@ def _extract_local_blocks(
             for key, start, end in windows:
                 idx = query_index.get(query_accn)
                 if idx is not None and start <= idx <= end:
-                    local_blocks[key].append(line)
+                    local_blocks[key].append(_mark_target_block_line(line, target_gene_set))
                     break
 
     for key, lines in local_blocks.items():

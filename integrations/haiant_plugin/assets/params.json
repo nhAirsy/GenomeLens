@@ -1,0 +1,23 @@
+{
+  "input_mode": "bed_cds",
+  "species": [
+    {
+      "name": "query",
+      "bed": "input/query.bed",
+      "cds": "input/query.cds"
+    },
+    {
+      "name": "subject",
+      "bed": "input/subject.bed",
+      "cds": "input/subject.cds"
+    }
+  ],
+  "output_dir": "output",
+  "workflow": "graphics_synteny",
+  "threads": 4,
+  "min_block_size": 1,
+  "formats": "png",
+  "jcvi_layout": "",
+  "jcvi_seqids": "",
+  "allow_simplified_fallback": false
+}

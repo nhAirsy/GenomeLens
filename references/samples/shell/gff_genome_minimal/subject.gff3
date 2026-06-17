@@ -1,0 +1,13 @@
+##gff-version 3
+chr1	GenomeLens	gene	1	42	.	+	.	ID=sgene1
+chr1	GenomeLens	mRNA	1	42	.	+	.	ID=stx1;Parent=sgene1
+chr1	GenomeLens	CDS	1	42	.	+	0	Parent=stx1
+chr1	GenomeLens	gene	91	132	.	+	.	ID=sgene2
+chr1	GenomeLens	mRNA	91	132	.	+	.	ID=stx2;Parent=sgene2
+chr1	GenomeLens	CDS	91	132	.	+	0	Parent=stx2
+chr1	GenomeLens	gene	161	202	.	+	.	ID=sgene3
+chr1	GenomeLens	mRNA	161	202	.	+	.	ID=stx3;Parent=sgene3
+chr1	GenomeLens	CDS	161	202	.	+	0	Parent=stx3
+chr1	GenomeLens	gene	231	272	.	+	.	ID=sgene4
+chr1	GenomeLens	mRNA	231	272	.	+	.	ID=stx4;Parent=sgene4
+chr1	GenomeLens	CDS	231	272	.	+	0	Parent=stx4

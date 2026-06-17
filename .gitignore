@@ -1,0 +1,60 @@
+# Python 字节码与测试缓存
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+
+# 覆盖率报告
+.coverage
+htmlcov/
+
+# 构建与打包产物
+build/
+dist/
+.build/
+*.egg-info/
+*.spec.bak
+
+# 应用发布制品
+app/*.tmp
+app/*.zip
+app/*/
+!app/.gitkeep
+!app/README.md
+
+# 本地docs
+docs/施工计划/**
+docs/历史/
+docs/开发手册/新增/
+
+# 已下载的工具链归档
+references/downloads/toolchains/**
+!references/downloads/toolchains/.gitkeep
+references/downloads/**/*.part
+
+# 本地上游参考镜像（仅供对照 vendored 改动，不应进入 Git 跟踪）
+references/upstream/
+
+# 已解压的运行时工具链
+toolchains/blast/current/**
+toolchains/imagemagick/current/**
+toolchains/jcvi-genomelens/current/*.exe
+toolchains/jcvi-genomelens/current/*.zip
+toolchains/**/current/tmp/
+
+# 本地虚拟环境
+platform/.venv/
+engines/jcvi/.venv/
+integrations/haiant_plugin/.venv/
+
+# 日志与临时压缩文件
+*.log
+*.zip.tmp
+
+# 本地运行
+.work/
+
+# IDE 配置（含 JetBrains 会话状态、模块配置、检查配置等）
+.idea/

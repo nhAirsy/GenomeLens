@@ -1,0 +1,90 @@
+name: windows-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: python -m pip install ruff
+
+      - name: Lint
+        run: |
+          ruff check platform/src platform/tests engines/jcvi/src/jcvi_genomelens engines/jcvi/tests integrations/haiant_plugin/src integrations/haiant_plugin/tests
+          ruff format --check platform/src platform/tests engines/jcvi/src/jcvi_genomelens engines/jcvi/tests integrations/haiant_plugin/src integrations/haiant_plugin/tests
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install platform and pyright
+        run: python -m pip install -e platform pyright
+
+      - name: Type check core and runners
+        working-directory: platform
+        run: pyright
+
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python packages
+        run: python -m pip install -e platform -e engines/jcvi pytest
+
+      - name: Restore BLAST+ cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            references/downloads/toolchains/blast/
+            toolchains/blast/current/
+          key: blast-windows-py312-v1
+
+      - name: Ensure BLAST+ test toolchain
+        run: |
+          @'
+          from pathlib import Path
+
+          from genomelens.toolchain.runtime.toolchain_installer import install_toolchain
+
+          required = [
+              Path("toolchains/blast/current/bin/blastn.exe"),
+              Path("toolchains/blast/current/bin/makeblastdb.exe"),
+          ]
+          if not all(path.is_file() for path in required):
+              result = install_toolchain("blast")
+              print(result)
+              if not result.ok:
+                  raise SystemExit(1)
+          missing = [str(path) for path in required if not path.is_file()]
+          if missing:
+              raise SystemExit(f"BLAST+ cache/install did not provide required files: {missing}")
+          print("BLAST+ test toolchain is ready.")
+          '@ | python -
+
+      - name: Run shell tests
+        run: python -m pytest platform/tests
+
+      - name: Run engine tests
+        run: python -m pytest engines/jcvi/tests
+
+      - name: Run HAIant plugin tests
+        run: python -m pytest integrations/haiant_plugin/tests

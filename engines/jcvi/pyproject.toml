@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jcvi-genomelens"
+version = "0.1.0"
+description = "Standalone GenomeLens engine carrying vendored JCVI"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+  "biopython",
+  "matplotlib>=3.8",
+  "more-itertools",
+  "natsort",
+  "networkx",
+  "numpy",
+  "ortools",
+  "palettable",
+  "scipy",
+  "seaborn",
+  "gffutils",
+  "ete3",
+  "rich",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pyinstaller>=6",
+  "ruff>=0.6",
+]
+
+[project.scripts]
+jcvi-genomelens = "jcvi_genomelens.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

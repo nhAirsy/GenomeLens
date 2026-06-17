@@ -1,0 +1,21 @@
+{
+  "input_mode": "bed_cds",
+  "species": [
+    {
+      "name": "query",
+      "bed": "../shell/bed_cds_minimal/query.bed",
+      "cds": "../shell/bed_cds_minimal/query.cds"
+    },
+    {
+      "name": "subject",
+      "bed": "../shell/bed_cds_minimal/subject.bed",
+      "cds": "../shell/bed_cds_minimal/subject.cds"
+    }
+  ],
+  "output_dir": "output",
+  "workflow": "graphics_synteny",
+  "threads": 2,
+  "min_block_size": 1,
+  "formats": "png",
+  "allow_simplified_fallback": false
+}

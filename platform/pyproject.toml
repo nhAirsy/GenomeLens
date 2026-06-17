@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "genomelens"
+version = "1.0.0"
+description = "Windows-first shell for GenomeLens synteny workflows"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+  "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pyinstaller>=6",
+  "cython>=3",
+  "ruff>=0.6",
+  "pyright>=1.1",
+]
+
+[project.scripts]
+genomelens = "genomelens.cli.main:main"
+GenomeLens = "genomelens.cli.main:main"
+
+# 预留方法插件入口点；第三方包可声明 [project.entry-points."genomelens.methods"]
+# 并提供实现 MethodPlugin 协议的可调用对象，例如：
+# syri = "genomelens.analysis.methods.syri:SyriPlugin"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+  "real_engine: tests that require the real packaged jcvi-genomelens engine",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pyright]
+include = ["src/genomelens"]
+exclude = ["**/node_modules", "**/__pycache__"]
+typeCheckingMode = "basic"
+pythonVersion = "3.12"

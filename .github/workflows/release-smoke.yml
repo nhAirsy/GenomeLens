@@ -1,0 +1,37 @@
+name: release-smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e "platform[dev]" -e "engines/jcvi[dev]" pytest
+      - run: python -m genomelens.cli.main --help
+      - run: python -m genomelens.cli.main check --json --install-missing
+      - run: python -m jcvi_genomelens.cli probe --json
+      - name: Build engine
+        shell: pwsh
+        run: ./engines/jcvi/packaging/scripts/build_engine.ps1
+      - name: Smoke engine executable
+        shell: pwsh
+        run: ./engines/jcvi/packaging/scripts/smoke_test_engine.ps1 -EngineExe ./engines/jcvi/dist/jcvi-genomelens.exe
+      - name: Build GenomeLens runtime
+        shell: pwsh
+        run: ./platform/packaging/scripts/build_windows.ps1
+      - name: Smoke GenomeLens runtime
+        shell: pwsh
+        run: ./platform/packaging/scripts/smoke_test_exe.ps1 -RuntimeExe ./platform/dist/GenomeLens/GenomeLens-runtime.exe
+      - name: Build split packages
+        shell: pwsh
+        run: ./scripts/build_split_packages.ps1
+      - name: Build HAIant plugin package
+        shell: pwsh
+        run: |
+          python -m PyInstaller ./integrations/haiant_plugin/pyinstaller/genomelens_haiant.spec --clean --noconfirm
+          ./scripts/build_haiant_plugin.ps1

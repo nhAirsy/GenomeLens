@@ -1,0 +1,115 @@
+{
+  "title": "GenomeLens 共线性分析",
+  "title_en": "GenomeLens Synteny Analysis",
+  "description": "基于 GenomeLens runtime 执行 2 到 n 个物种的共线性分析并输出结构化结果目录。",
+  "description_en": "Run GenomeLens runtime for 2-or-more-species synteny analysis and write a structured output directory.",
+  "version": "v1.0.0",
+  "context": "输入 BED+CDS 或 GFF+基因组 FASTA，输出 run_summary.json、engine_run_summary.json、anchors、blocks 和图像结果。",
+  "context_en": "Input BED+CDS or GFF+genome FASTA and output run_summary.json, engine_run_summary.json, anchors, blocks, and figures.",
+  "env": "Python",
+  "outputType": "dir",
+  "params": [
+    {
+      "label": "输入模式",
+      "label_en": "Input Mode",
+      "key": "input_mode",
+      "valueType": "customer_selector",
+      "options": ["bed_cds", "gff_genome"],
+      "example_value": "bed_cds",
+      "description": "选择 BED+CDS 或 GFF+基因组 FASTA 输入模式。",
+      "description_en": "Choose BED+CDS or GFF+genome FASTA input mode."
+    },
+    {
+      "label": "物种列表",
+      "label_en": "Species",
+      "key": "species",
+      "valueType": "json",
+      "example_value": [
+        {"name": "speciesA", "bed": "input/a.bed", "cds": "input/a.cds"},
+        {"name": "speciesB", "bed": "input/b.bed", "cds": "input/b.cds"}
+      ],
+      "description": "至少两个物种。bed_cds 模式填写 name、bed、cds；gff_genome 模式填写 name、gff、genome。",
+      "description_en": "At least two species. Use name/bed/cds for bed_cds mode, or name/gff/genome for gff_genome mode."
+    },
+    {
+      "label": "输出目录",
+      "label_en": "Output Directory",
+      "key": "output_dir",
+      "valueType": "dir_selector",
+      "example_value": "output",
+      "description": "结果输出目录。",
+      "description_en": "Output directory for results."
+    },
+    {
+      "label": "工作流",
+      "label_en": "Workflow",
+      "key": "workflow",
+      "valueType": "customer_selector",
+      "options": [
+        "graphics_synteny",
+        "graphics_dotplot",
+        "graphics_karyotype",
+        "mcscan_pairwise",
+        "catalog_ortholog"
+      ],
+      "example_value": "graphics_synteny",
+      "description": "GenomeLens engine 工作流。",
+      "description_en": "GenomeLens engine workflow."
+    },
+    {
+      "label": "线程数",
+      "label_en": "Threads",
+      "key": "threads",
+      "valueType": "int",
+      "example_value": 4,
+      "description": "运行线程数。",
+      "description_en": "Number of worker threads."
+    },
+    {
+      "label": "最小 block 大小",
+      "label_en": "Minimum Block Size",
+      "key": "min_block_size",
+      "valueType": "int",
+      "example_value": 5,
+      "description": "共线性 block 的最小基因数。",
+      "description_en": "Minimum gene count for synteny blocks."
+    },
+    {
+      "label": "输出格式",
+      "label_en": "Output Formats",
+      "key": "formats",
+      "valueType": "str",
+      "example_value": "png",
+      "description": "逗号分隔的输出格式。",
+      "description_en": "Comma-separated output formats."
+    },
+    {
+      "label": "JCVI layout 文件",
+      "label_en": "JCVI Layout File",
+      "key": "jcvi_layout",
+      "valueType": "file_selector",
+      "example_value": "",
+      "description": "可选 layout 文件，主要用于双物种子任务。",
+      "description_en": "Optional layout file, mainly for pairwise tasks."
+    },
+    {
+      "label": "JCVI seqids 文件",
+      "label_en": "JCVI Seqids File",
+      "key": "jcvi_seqids",
+      "valueType": "file_selector",
+      "example_value": "",
+      "description": "可选 seqids 文件，主要用于双物种子任务。",
+      "description_en": "Optional seqids file, mainly for pairwise tasks."
+    },
+    {
+      "label": "允许简化降级",
+      "label_en": "Allow Simplified Fallback",
+      "key": "allow_simplified_fallback",
+      "valueType": "customer_selector",
+      "options": ["false", "true"],
+      "example_value": "false",
+      "description": "仅诊断字段；正式结果应保持 false。",
+      "description_en": "Diagnostic only; production results should keep this false."
+    }
+  ]
+}

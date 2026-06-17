@@ -1,0 +1,22 @@
+name: genomelens
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - python=3.12
+  - pip
+  - matplotlib>=3.8
+  - pytest>=8
+  - pyinstaller>=6
+  - cython>=3
+  - ruff>=0.6
+  - pip:
+      - -e .
+      - more-itertools
+      - natsort
+      - ortools
+      - palettable
+      - rich

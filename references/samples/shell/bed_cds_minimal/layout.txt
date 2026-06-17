@@ -1,0 +1,3 @@
+# y, xstart, xend, rotation, color, label, va, bed
+0.6, 0.1, 0.8, 0, #2f6f73, query, top, query.bed
+0.4, 0.1, 0.8, 0, #b85c38, subject, bottom, subject.bed

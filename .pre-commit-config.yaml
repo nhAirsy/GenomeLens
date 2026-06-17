@@ -1,0 +1,9 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^(platform|engines/jcvi/src/jcvi_genomelens|engines/jcvi/tests)/.*\.py$
+      - id: ruff-format
+        files: ^(platform|engines/jcvi/src/jcvi_genomelens|engines/jcvi/tests)/.*\.py$

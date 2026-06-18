@@ -11,7 +11,7 @@
 
 能力范围：
 
-- 从 2 到 n 个物种的 GFF+FASTA 或 BED+CDS 输入开始。
+- 从 2 到 n 个物种的 GFF+FASTA 或 BED+CDS 输入开始，并可按物种混用两类输入。
 - 自动调用 BLAST+ 与 jcvi-genomelens engine(引擎)。
 - 2 个物种时运行双物种真实流程；3 个及以上物种时自动拆分为 all-vs-all pairwise(全组合两两比较) 并汇总结果。
 - 支持以参考物种目标基因为中心的 `local_synteny` 局部共线性分析。

@@ -45,10 +45,6 @@ def validate_request(request: McscanRequest) -> None:
         raise InputValidationError("species names must be unique")
     for index, spec in enumerate(species, start=1):
         validate_genome_input(spec, f"species[{index}] {spec.name}")
-    # 当前 shell 只支持整批物种同一输入模式，便于预处理和 engine 协议保持一致。
-    modes = {spec.mode for spec in species}
-    if len(modes) != 1:
-        raise InputValidationError("all species must use the same input mode")
     if request.threads < 1:
         raise InputValidationError("--threads must be >= 1")
     if request.min_block_size < 1:

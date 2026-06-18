@@ -51,6 +51,8 @@ input/
   speciesB.fa
 ```
 
+同一个输入目录可以按物种混用两类输入。例如 `speciesA.bed + speciesA.cds` 与 `speciesB.gff3 + speciesB.fa` 可以放在同一目录；GenomeLens 会只预处理 GFF/GTF + FASTA 物种，并把所有物种统一交给 JCVI 链路。若同一个物种同时提供两类文件，自动发现会优先使用已准备好的 `BED + CDS/PEP`。
+
 一键运行：
 
 ```powershell

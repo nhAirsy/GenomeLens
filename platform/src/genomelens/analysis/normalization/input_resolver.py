@@ -48,9 +48,8 @@ def discover_species_from_directory(input_dir: str | Path) -> list[AnalysisSpeci
     beds = _stemmed_files(root, {".bed"})
     cds_files = _stemmed_files(root, {".cds", ".cds.fa", ".cds.fasta", ".pep", ".pep.fa", ".pep.fasta", ".faa"})
 
-    # prepared 模式和 raw 模式会分别收集，后面统一检查是否混用
-    prepared = [
-        AnalysisSpeciesInput(
+    prepared = {
+        name: AnalysisSpeciesInput(
             name=name,
             input_mode="bed_cds",
             bed=str(bed),
@@ -58,12 +57,12 @@ def discover_species_from_directory(input_dir: str | Path) -> list[AnalysisSpeci
         )
         for name, bed in beds.items()
         if name in cds_files
-    ]
+    }
 
     gffs = _stemmed_files(root, {".gff", ".gff3", ".gtf"})
     genomes = _stemmed_files(root, {".fa", ".fasta", ".fna"})
-    raw = [
-        AnalysisSpeciesInput(
+    raw = {
+        name: AnalysisSpeciesInput(
             name=name,
             input_mode="gff_genome",
             gff=str(gff),
@@ -71,13 +70,11 @@ def discover_species_from_directory(input_dir: str | Path) -> list[AnalysisSpeci
         )
         for name, gff in gffs.items()
         if name in genomes
-    ]
+    }
 
-    if prepared and raw:
-        raise InputValidationError(messages.INPUT_MIXED_MODES)
-
-    # shell 当前要求一次分析只走一种输入模式，并且至少发现两个物种
-    species = prepared or raw
+    # 同一物种同时存在 prepared/raw 时优先使用已经准备好的 BED+CDS/PEP。
+    species_by_name = {**raw, **prepared}
+    species = [species_by_name[name] for name in sorted(species_by_name)]
     if len(species) < 2:
         raise InputValidationError(messages.INPUT_TOO_FEW_SPECIES)
     return species

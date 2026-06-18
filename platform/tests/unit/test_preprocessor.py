@@ -1,6 +1,7 @@
 import argparse
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 from genomelens.analysis.normalization.input_resolver import discover_species_from_directory
 from genomelens.analysis.normalization.option_merger import (
@@ -17,6 +18,10 @@ from genomelens.analysis.normalization.option_merger import (
 from genomelens.analysis.normalization.reference_resolver import _resolve_reference_index
 from genomelens.analysis.normalization.request_assembler import mcscan_auto_request_from_cli
 from genomelens.analysis.request_models import AnalysisSpeciesInput
+from genomelens.app.controller.runners import _shared as runner_shared
+from genomelens.app.controller.state_machine import WorkflowState
+from genomelens.core.jcvi_adapter.adapter_models import McscanRequest
+from genomelens.core.models import GenomeInputSpec, PreparedGenomeInputSpec, RawAnnotationInputSpec
 from genomelens.core.preprocessing.annotation_preprocessor import (
     CdsFeature,
     TranscriptRecord,
@@ -24,6 +29,8 @@ from genomelens.core.preprocessing.annotation_preprocessor import (
     preprocess_one,
     select_primary_transcripts,
 )
+from genomelens.core.validators import validate_request
+from genomelens.data.workspace.output_layout import create_output_layout
 
 
 def test_has_internal_stop_detects_in_frame_stop() -> None:
@@ -142,6 +149,94 @@ def test_discover_species_from_directory_recognizes_pep_input(tmp_path: Path) ->
     names = {s.name for s in species}
     assert names == {"A", "B"}
     assert all(s.input_mode == "bed_cds" for s in species)
+
+
+def test_discover_species_from_directory_allows_mixed_input_modes(tmp_path: Path) -> None:
+    (tmp_path / "A.bed").write_text("chr1\t0\t3\tg1\t0\t+\n", encoding="utf-8")
+    (tmp_path / "A.cds").write_text(">g1\nATG\n", encoding="utf-8")
+    (tmp_path / "B.gff3").write_text("##gff-version 3\n", encoding="utf-8")
+    (tmp_path / "B.fa").write_text(">chr1\nATG\n", encoding="utf-8")
+
+    species = discover_species_from_directory(tmp_path)
+
+    assert [(item.name, item.input_mode) for item in species] == [("A", "bed_cds"), ("B", "gff_genome")]
+
+
+def test_discover_species_from_directory_prefers_prepared_for_same_species(tmp_path: Path) -> None:
+    (tmp_path / "A.bed").write_text("chr1\t0\t3\tg1\t0\t+\n", encoding="utf-8")
+    (tmp_path / "A.cds").write_text(">g1\nATG\n", encoding="utf-8")
+    (tmp_path / "A.gff3").write_text("##gff-version 3\n", encoding="utf-8")
+    (tmp_path / "A.fa").write_text(">chr1\nATG\n", encoding="utf-8")
+    (tmp_path / "B.bed").write_text("chr1\t0\t3\tg1\t0\t+\n", encoding="utf-8")
+    (tmp_path / "B.cds").write_text(">g1\nATG\n", encoding="utf-8")
+
+    species = discover_species_from_directory(tmp_path)
+
+    assert [(item.name, item.input_mode) for item in species] == [("A", "bed_cds"), ("B", "bed_cds")]
+
+
+def test_validate_request_accepts_mixed_input_modes(tmp_path: Path) -> None:
+    query_bed = tmp_path / "query.bed"
+    query_cds = tmp_path / "query.cds"
+    subject_gff = tmp_path / "subject.gff3"
+    subject_genome = tmp_path / "subject.fa"
+    query_bed.write_text("chr1\t0\t3\tg1\t0\t+\n", encoding="utf-8")
+    query_cds.write_text(">g1\nATG\n", encoding="utf-8")
+    subject_gff.write_text("##gff-version 3\n", encoding="utf-8")
+    subject_genome.write_text(">chr1\nATG\n", encoding="utf-8")
+
+    validate_request(
+        McscanRequest(
+            query=GenomeInputSpec("query", prepared=PreparedGenomeInputSpec(query_bed, query_cds)),
+            subject=GenomeInputSpec("subject", raw=RawAnnotationInputSpec(subject_gff, subject_genome)),
+            outdir=tmp_path / "out",
+        )
+    )
+
+
+def test_prepare_inputs_preprocesses_only_raw_side(tmp_path: Path, monkeypatch) -> None:
+    query_bed = tmp_path / "query.bed"
+    query_cds = tmp_path / "query.cds"
+    subject_gff = tmp_path / "subject.gff3"
+    subject_genome = tmp_path / "subject.fa"
+    prepared_subject_bed = tmp_path / "out" / "inputs" / "prepared" / "subject.bed"
+    prepared_subject_cds = tmp_path / "out" / "inputs" / "prepared" / "subject.cds"
+    query_bed.write_text("chr1\t0\t3\tg1\t0\t+\n", encoding="utf-8")
+    query_cds.write_text(">g1\nATG\n", encoding="utf-8")
+    subject_gff.write_text("##gff-version 3\n", encoding="utf-8")
+    subject_genome.write_text(">chr1\nATG\n", encoding="utf-8")
+
+    calls: list[tuple[str, Path, Path, Path]] = []
+
+    def fake_preprocess_one(name: str, gff: Path, genome: Path, outdir: Path) -> SimpleNamespace:
+        calls.append((name, gff, genome, outdir))
+        outdir.mkdir(parents=True, exist_ok=True)
+        prepared_subject_bed.write_text("chr1\t0\t3\tg2\t0\t+\n", encoding="utf-8")
+        prepared_subject_cds.write_text(">g2\nATG\n", encoding="utf-8")
+        return SimpleNamespace(
+            bed=prepared_subject_bed,
+            cds=prepared_subject_cds,
+            summary={"name": name, "input_mode": "gff_genome"},
+        )
+
+    monkeypatch.setattr(runner_shared, "preprocess_one", fake_preprocess_one)
+
+    states: list[WorkflowState] = []
+    layout = create_output_layout(tmp_path / "out", force=True)
+    request = McscanRequest(
+        query=GenomeInputSpec("query", prepared=PreparedGenomeInputSpec(query_bed, query_cds)),
+        subject=GenomeInputSpec("subject", raw=RawAnnotationInputSpec(subject_gff, subject_genome)),
+        outdir=tmp_path / "out",
+    )
+
+    query, subject, summaries = runner_shared.prepare_inputs(states.append, request, layout)
+
+    assert query == PreparedGenomeInputSpec(query_bed, query_cds)
+    assert subject == PreparedGenomeInputSpec(prepared_subject_bed, prepared_subject_cds)
+    assert summaries == [{"name": "subject", "input_mode": "gff_genome"}]
+    assert calls == [("subject", subject_gff, subject_genome, layout.prepared)]
+    assert states == [WorkflowState.PREPROCESSING_ANNOTATIONS]
+    assert layout.preprocessing_summary.is_file()
 
 
 def test_request_normalizer_resolves_new_options_from_defaults() -> None:

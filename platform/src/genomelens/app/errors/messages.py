@@ -24,7 +24,6 @@ TOOLCHAIN_GENERIC_NOT_FOUND = "工具链检查失败：{message}"
 
 # region 输入与请求
 INPUT_DIRECTORY_NOT_FOUND = "auto 输入目录不存在：{path}"
-INPUT_MIXED_MODES = "auto 输入目录不能混用 BED+CDS 和 GFF+FASTA 两种模式"
 INPUT_TOO_FEW_SPECIES = "auto 输入目录至少需要两个同名物种文件对"
 INPUT_REFERENCE_OUT_OF_RANGE = "--reference 索引 {index} 超出范围（共 {count} 个物种）"
 INPUT_REFERENCE_NOT_FOUND = "--reference 物种 '{name}' 不存在于输入目录；可用：{available}"

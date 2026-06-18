@@ -6,7 +6,7 @@ GenomeLens 是面向 Windows 的比较基因组学与共线性分析命令行产
 
 当前版本已经实现双物种真实 JCVI 端到端链路，以及以目标基因为中心的局部共线性分析：
 
-- `GFF+FASTA` 或 `BED+CDS/PEP` 输入（支持 `.pep`、`.faa`）。
+- `GFF+FASTA` 或 `BED+CDS/PEP` 输入（支持 `.pep`、`.faa`），同一目录可按物种混用两类输入。
 - GFF/GTF 与 FASTA 预处理为 JCVI 所需的 BED/CDS，按最长 CDS、无内部终止密码子、最多 CDS 片段、mRNA ID 选择代表转录本。
 - BLAST+ / LAST / Diamond 比对后端可选。
 - BLAST+ 与 JCVI MCscan(共线性扫描)。

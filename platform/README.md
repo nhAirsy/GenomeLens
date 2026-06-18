@@ -13,7 +13,7 @@ jcvi-genomelens run --manifest <path> --outdir <path>
 
 当前 shell 支持 2 到 n 个物种输入：
 
-- 普通用户入口：`analyze mcscan <input-dir> <output-dir>`，从目录自动发现同名 BED+CDS 或 GFF+FASTA 文件对。
+- 普通用户入口：`analyze mcscan <input-dir> <output-dir>`，从目录自动发现同名 BED+CDS/PEP 或 GFF+FASTA 文件对，并允许不同物种混用两类输入。
 - 2 个物种时自动运行双物种真实 JCVI 流程。
 - 3 个以上物种时自动拆成 all-vs-all pairwise(全组合两两比较) 子任务。
 - 带 `--target-genes` 时，以参考物种为中心与每个目标物种运行 `local_synteny`。

@@ -34,6 +34,8 @@ HAIant/Tauri 侧如果只开放一个入口，建议把它命名为“GenomeLens
    - `BED + CDS/PEP`：例如 `speciesA.bed` + `speciesA.cds`，也支持 `.pep`、`.pep.fa`、`.faa`。
    - `GFF/GTF + genome FASTA`：例如 `speciesA.gff3` + `speciesA.fa`。
 
+   同一目录允许不同物种使用不同输入模式；同一个物种同时存在两类输入时，优先使用 `BED + CDS/PEP`。
+
    这一阶段的目标是把用户的一整个输入文件夹转换成稳定的 `species[]` 列表，而不是要求用户手工填写 query/subject。
 
 2. 参数归一化与参考物种选择
@@ -46,7 +48,7 @@ HAIant/Tauri 侧如果只开放一个入口，建议把它命名为“GenomeLens
 
 4. 注释预处理
 
-   如果输入是 `GFF/GTF + FASTA`，平台会先转换为 JCVI 所需的 `BED + CDS`。当前预处理会按代表转录本策略抽取基因模型，尽量统一不同注释来源中的 ID、CDS 和基因坐标。若用户已经提供 `BED + CDS/PEP`，则跳过这一步，直接进入 JCVI 链路。
+   如果某个物种输入是 `GFF/GTF + FASTA`，平台会先转换为 JCVI 所需的 `BED + CDS`。当前预处理会按代表转录本策略抽取基因模型，尽量统一不同注释来源中的 ID、CDS 和基因坐标。若某个物种已经提供 `BED + CDS/PEP`，则跳过这一步，直接进入 JCVI 链路。
 
 5. 工具链定位
 

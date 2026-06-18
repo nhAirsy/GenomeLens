@@ -15,7 +15,7 @@
 
 当前交付包面向真实 JCVI 共线性分析：
 
-- 从两个或多个物种的 GFF+FASTA 或 BED+CDS 输入开始。
+- 从两个或多个物种的 GFF+FASTA 或 BED+CDS 输入开始，并可按物种混用两类输入。
 - 自动调用 BLAST+ 与 jcvi-genomelens engine(引擎)。
 - 2 个物种时运行双物种真实流程；3 个及以上物种时自动拆分为 all-vs-all pairwise(全组合两两比较) 并汇总结果。
 - 输出 anchors(锚点)、blocks(区块)、dotplot(点图)、synteny figure(共线性图)、可选 ortholog(同源基因) 结果，以及多物种全局核型总图(global karyotype)。

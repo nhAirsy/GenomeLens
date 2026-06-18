@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from genomelens.analysis.methods.mcscan_summary import McscanSummaryExtension
 from genomelens.app.controller.state_machine import WorkflowState
 from genomelens.app.errors import messages
-from genomelens.core.models import ArtifactRecord, PreparedGenomeInputSpec
+from genomelens.core.models import ArtifactRecord, GenomeInputSpec, PreparedGenomeInputSpec
 from genomelens.core.preprocessing.annotation_preprocessor import preprocess_one, write_preprocessing_summary
 from genomelens.core.summary_models import RunSummary, ScoringBlock, UiBlock
 
@@ -158,28 +158,29 @@ def prepare_inputs(
 ) -> tuple[PreparedGenomeInputSpec, PreparedGenomeInputSpec, list[dict[str, object]]]:
     """预处理输入或返回已准备好的输入"""
 
-    if request.query.prepared and request.subject.prepared:
-        return request.query.prepared, request.subject.prepared, []
+    def prepare_one(species: GenomeInputSpec) -> tuple[PreparedGenomeInputSpec, dict[str, object] | None]:
+        if species.prepared:
+            return species.prepared, None
 
-    set_state(WorkflowState.PREPROCESSING_ANNOTATIONS)
+        raw = species.raw
+        if raw is None:
+            raise RuntimeError(f"{species.name} input was expected but missing")
 
-    query_raw = request.query.raw
-    subject_raw = request.subject.raw
+        result = preprocess_one(species.name, raw.gff, raw.genome, layout.prepared)
+        return PreparedGenomeInputSpec(result.bed, result.cds), result.summary
 
-    if query_raw is None or subject_raw is None:
-        raise RuntimeError("raw inputs were expected but missing")
+    if request.query.raw or request.subject.raw:
+        set_state(WorkflowState.PREPROCESSING_ANNOTATIONS)
+
+    query, query_summary = prepare_one(request.query)
+    subject, subject_summary = prepare_one(request.subject)
 
     # 预处理摘要会进入最终 run_summary，供 GUI/CLI 解释 GFF+FASTA 是如何落到 BED+CDS 的
-    query_result = preprocess_one(request.query.name, query_raw.gff, query_raw.genome, layout.prepared)
-    subject_result = preprocess_one(request.subject.name, subject_raw.gff, subject_raw.genome, layout.prepared)
+    summaries = [summary for summary in [query_summary, subject_summary] if summary is not None]
+    if summaries:
+        write_preprocessing_summary(layout.preprocessing_summary, summaries)
 
-    write_preprocessing_summary(layout.preprocessing_summary, [query_result.summary, subject_result.summary])
-
-    return (
-        PreparedGenomeInputSpec(query_result.bed, query_result.cds),
-        PreparedGenomeInputSpec(subject_result.bed, subject_result.cds),
-        [query_result.summary, subject_result.summary],
-    )
+    return query, subject, summaries
 
 
 def write_run_summary(layout: OutputLayout, summary: RunSummary) -> None:
